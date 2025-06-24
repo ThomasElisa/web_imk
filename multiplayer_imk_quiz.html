@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: backgroundShift 15s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+            33% { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+            66% { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 90%;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 35px 55px rgba(0, 0, 0, 0.15);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.2rem;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            margin: 0.5rem;
+            min-width: 150px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #27ae60, #229954);
+            box-shadow: 0 10px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 15px 30px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .room-id-display {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 2rem 0;
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(102, 126, 234, 0.6); }
+        }
+
+        .participants-list {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .participant {
+            background: white;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .participant.host {
+            border-left-color: #f39c12;
+            background: linear-gradient(45deg, #fff3cd, #ffeaa7);
+        }
+
+        .questions-container {
+            text-align: left;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin: 1rem 0;
+        }
+
+        .question-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-item h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .question-item .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .question-item .option {
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        .option.correct { background: #27ae60; }
+        .option.incorrect { background: #95a5a6; }
+
+        .quiz-interface {
+            text-align: center;
+        }
+
+        .current-question {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .quiz-option {
+            padding: 20px;
+            border: 3px solid transparent;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-option.option-a { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+        .quiz-option.option-b { background: linear-gradient(45deg, #3498db, #2980b9); }
+        .quiz-option.option-c { background: linear-gradient(45deg, #f39c12, #e67e22); }
+        .quiz-option.option-d { background: linear-gradient(45deg, #27ae60, #229954); }
+
+        .quiz-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .quiz-option.selected {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+
+        .timer {
+            font-size: 3rem;
+            color: #e74c3c;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            animation: timerPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .leaderboard {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .leaderboard-item.rank-1 { background: linear-gradient(45deg, #f1c40f, #f39c12); color: white; }
+        .leaderboard-item.rank-2 { background: linear-gradient(45deg, #95a5a6, #7f8c8d); color: white; }
+        .leaderboard-item.rank-3 { background: linear-gradient(45deg, #e67e22, #d35400); color: white; }
+
+        .rank {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .status-indicator {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+
+        .status-waiting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 600px) {
+            .quiz-options, .question-item .options {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .room-id-display {
+                font-size: 1.5rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Home Screen -->
+        <div class="screen active" id="homeScreen">
+            <h1>🖥️ Quiz Multiplayer</h1>
+            <p class="subtitle">Tugas Pak Herman - IMK</p>
+            <div class="controls">
+                <button class="btn" onclick="showCreateRoom()">Buat Room</button>
+                <button class="btn btn-secondary" onclick="showJoinRoom()">Join Room</button>
+            </div>
+        </div>
+
+        <!-- Create Room Screen -->
+        <div class="screen" id="createRoomScreen">
+            <h1>🎯 Buat Room Baru</h1>
+            <div class="input-group">
+                <label>Nama Host:</label>
+                <input type="text" id="hostName" placeholder="Masukkan nama Anda">
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="createRoom()">Buat Room</button>
+                <button class="btn btn-secondary" onclick="showHome()">Kembali</button>
+            </div>
+        </div>
+
+        <!-- Join Room Screen -->
+        <div class="screen" id="joinRoomScreen">
+            <h1>🚪 Join Room</h1>
+            <div class="input-group">
+                <label>Room ID:</label>
+                <input type="text" id="joinRoomId" placeholder="Masukkan Room ID">
+            </div>
+            <div class="input-group">
+                <label>Nama Anda:</label>
+                <input type="text" id="participantName" placeholder="Masukkan nama Anda">
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="joinRoom()">Join Room</button>
+                <button class="btn btn-secondary" onclick="showHome()">Kembali</button>
+            </div>
+        </div>
+
+        <!-- Host Room Management -->
+        <div class="screen" id="hostRoomScreen">
+            <h1>🎮 Host Dashboard</h1>
+            <div class="room-id-display" id="hostRoomId">Room ID: </div>
+            
+            <div class="participants-list">
+                <h3>👥 Peserta (<span id="participantCount">0</span>)</h3>
+                <div id="participantsList"></div>
+            </div>
+
+            <div class="questions-container">
+                <h3>❓ Pertanyaan (<span id="questionCount">0</span>)</h3>
+                <div id="questionsList"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="showAddQuestion()">Tambah Pertanyaan</button>
+                <button class="btn btn-secondary" onclick="startQuiz()" id="startQuizBtn" disabled>Mulai Kuiz</button>
+                <button class="btn btn-danger" onclick="leaveRoom()">Keluar Room</button>
+            </div>
+            
+            <div style="margin-top: 1rem; padding: 1rem; background: #e3f2fd; border-radius: 10px; color: #1565c0; font-size: 0.9rem;">
+                💡 <strong>Tips:</strong> Klik pada Room ID untuk menyalin.
+            </div>
+        </div>
+
+        <!-- Add Question Screen -->
+        <div class="screen" id="addQuestionScreen">
+            <h1>➕ Tambah Pertanyaan</h1>
+            <div class="input-group">
+                <label>Pertanyaan:</label>
+                <textarea id="questionText" rows="3" placeholder="Masukkan pertanyaan..."></textarea>
+            </div>
+            <div class="input-group">
+                <label>Pilihan A:</label>
+                <input type="text" id="optionA" placeholder="Pilihan A">
+            </div>
+            <div class="input-group">
+                <label>Pilihan B:</label>
+                <input type="text" id="optionB" placeholder="Pilihan B">
+            </div>
+            <div class="input-group">
+                <label>Pilihan C:</label>
+                <input type="text" id="optionC" placeholder="Pilihan C">
+            </div>
+            <div class="input-group">
+                <label>Pilihan D:</label>
+                <input type="text" id="optionD" placeholder="Pilihan D">
+            </div>
+            <div class="input-group">
+                <label>Jawaban Benar:</label>
+                <select id="correctAnswer" style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #e9ecef;">
+                    <option value="0">A</option>
+                    <option value="1">B</option>
+                    <option value="2">C</option>
+                    <option value="3">D</option>
+                </select>
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="addQuestion()">Simpan Pertanyaan</button>
+                <button class="btn btn-secondary" onclick="showHostRoom()">Kembali</button>
+            </div>
+        </div>
+
+        <!-- Participant Waiting Room -->
+        <div class="screen" id="participantWaitingScreen">
+            <h1>⏳ Menunggu Host</h1>
+            <div class="room-id-display" id="participantRoomId">Room ID: </div>
+            
+            <div class="participants-list">
+                <h3>👥 Peserta</h3>
+                <div id="waitingParticipantsList"></div>
+            </div>
+
+            <div class="status-indicator status-waiting">
+                Menunggu host untuk memulai kuiz...
+            </div>
+
+            <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-radius: 10px; color: #856404; font-size: 0.9rem;">
+                🎮 <strong>Siap bermain?</strong> Gunakan tombol A, B, C, D di keyboard untuk menjawab saat kuiz dimulai!
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-danger" onclick="leaveRoom()">Keluar Room</button>
+            </div>
+        </div>
+
+        <!-- Quiz Interface -->
+        <div class="screen" id="quizScreen">
+            <div class="timer" id="quizTimer">30</div>
+            
+            <div class="current-question">
+                <h3 id="quizQuestionNumber">Pertanyaan 1 dari 5</h3>
+                <div class="question-text" id="quizQuestionText"></div>
+            </div>
+
+            <div class="quiz-options" id="quizOptions">
+                <!-- Options will be populated here -->
+            </div>
+
+            <div class="status-indicator" id="quizStatus">Pilih jawaban Anda!</div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="screen" id="resultsScreen">
+            <h1>🏆 Hasil Kuiz</h1>
+            <div class="leaderboard" id="leaderboard">
+                <!-- Leaderboard will be populated here -->
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="showHome()">Kembali ke Home</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = {
+            name: '',
+            isHost: false,
+            roomId: ''
+        };
+
+        let gameState = {
+            rooms: {},
+            currentRoom: null,
+            currentQuestion: 0,
+            quizActive: false,
+            timeLeft: 30,
+            timer: null
+        };
+
+        // Screen management
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showHome() {
+            showScreen('homeScreen');
+            resetGameState();
+        }
+
+        function showCreateRoom() {
+            showScreen('createRoomScreen');
+        }
+
+        function showJoinRoom() {
+            showScreen('joinRoomScreen');
+        }
+
+        function showHostRoom() {
+            showScreen('hostRoomScreen');
+            updateHostDashboard();
+        }
+
+        function showAddQuestion() {
+            showScreen('addQuestionScreen');
+            clearQuestionForm();
+        }
+
+        // Room management
+        function generateRoomId() {
+            return Math.random().toString(36).substr(2, 6).toUpperCase();
+        }
+
+        function createRoom() {
+            const hostName = document.getElementById('hostName').value.trim();
+            if (!hostName) {
+                alert('Nama host harus diisi!');
+                return;
+            }
+
+            const roomId = generateRoomId();
+            currentUser.name = hostName;
+            currentUser.isHost = true;
+            currentUser.roomId = roomId;
+
+            gameState.rooms[roomId] = {
+                id: roomId,
+                host: hostName,
+                participants: [{ name: hostName, isHost: true, score: 0 }],
+                questions: [],
+                active: false
+            };
+
+            gameState.currentRoom = gameState.rooms[roomId];
+            
+            document.getElementById('hostRoomId').textContent = `Room ID: ${roomId}`;
+            showHostRoom();
+        }
+
+        function joinRoom() {
+            const roomId = document.getElementById('joinRoomId').value.trim().toUpperCase();
+            const participantName = document.getElementById('participantName').value.trim();
+
+            if (!roomId || !participantName) {
+                alert('Room ID dan nama harus diisi!');
+                return;
+            }
+
+            if (!gameState.rooms[roomId]) {
+                alert('Room ID tidak ditemukan!');
+                return;
+            }
+
+            if (gameState.rooms[roomId].participants.find(p => p.name === participantName)) {
+                alert('Nama sudah digunakan di room ini!');
+                return;
+            }
+
+            currentUser.name = participantName;
+            currentUser.isHost = false;
+            currentUser.roomId = roomId;
+
+            gameState.rooms[roomId].participants.push({
+                name: participantName,
+                isHost: false,
+                score: 0
+            });
+
+            gameState.currentRoom = gameState.rooms[roomId];
+            
+            document.getElementById('participantRoomId').textContent = `Room ID: ${roomId}`;
+            showScreen('participantWaitingScreen');
+            updateParticipantsList();
+        }
+
+        function leaveRoom() {
+            if (currentUser.isHost && gameState.currentRoom) {
+                delete gameState.rooms[currentUser.roomId];
+            } else if (gameState.currentRoom) {
+                gameState.currentRoom.participants = gameState.currentRoom.participants.filter(
+                    p => p.name !== currentUser.name
+                );
+            }
+            
+            resetGameState();
+            showHome();
+        }
+
+        function resetGameState() {
+            currentUser = { name: '', isHost: false, roomId: '' };
+            gameState.currentQuestion = 0;
+            gameState.quizActive = false;
+            gameState.currentRoom = null;
+            if (gameState.timer) {
+                clearInterval(gameState.timer);
+            }
+        }
+
+        // Question management
+        function clearQuestionForm() {
+            document.getElementById('questionText').value = '';
+            document.getElementById('optionA').value = '';
+            document.getElementById('optionB').value = '';
+            document.getElementById('optionC').value = '';
+            document.getElementById('optionD').value = '';
+            document.getElementById('correctAnswer').value = '0';
+        }
+
+        function addQuestion() {
+            const questionText = document.getElementById('questionText').value.trim();
+            const optionA = document.getElementById('optionA').value.trim();
+            const optionB = document.getElementById('optionB').value.trim();
+            const optionC = document.getElementById('optionC').value.trim();
+            const optionD = document.getElementById('optionD').value.trim();
+            const correctAnswer = parseInt(document.getElementById('correctAnswer').value);
+
+            if (!questionText || !optionA || !optionB || !optionC || !optionD) {
+                alert('Semua field harus diisi!');
+                return;
+            }
+
+            const question = {
+                question: questionText,
+                options: [optionA, optionB, optionC, optionD],
+                correct: correctAnswer
+            };
+
+            gameState.currentRoom.questions.push(question);
+            showHostRoom();
+            alert('Pertanyaan berhasil ditambahkan!');
+        }
+
+        // UI Updates
+        function updateHostDashboard() {
+            updateParticipantsList();
+            updateQuestionsList();
+            
+            const startBtn = document.getElementById('startQuizBtn');
+            startBtn.disabled = gameState.currentRoom.questions.length === 0;
+        }
+
+        function updateParticipantsList() {
+            const participantsList = document.getElementById('participantsList');
+            const waitingList = document.getElementById('waitingParticipantsList');
+            const count = document.getElementById('participantCount');
+            
+            if (!gameState.currentRoom) return;
+
+            const html = gameState.currentRoom.participants.map(p => `
+                <div class="participant ${p.isHost ? 'host' : ''}">
+                    <span>${p.name} ${p.isHost ? '(Host)' : ''}</span>
+                    <span>Skor: ${p.score || 0}</span>
+                </div>
+            `).join('');
+
+            if (participantsList) {
+                participantsList.innerHTML = html;
+                count.textContent = gameState.currentRoom.participants.length;
+            }
+            
+            if (waitingList) {
+                waitingList.innerHTML = html;
+            }
+        }
+
+        function updateQuestionsList() {
+            const questionsList = document.getElementById('questionsList');
+            const count = document.getElementById('questionCount');
+            
+            if (!gameState.currentRoom) return;
+
+            const html = gameState.currentRoom.questions.map((q, index) => `
+                <div class="question-item">
+                    <h4>${index + 1}. ${q.question}</h4>
+                    <div class="options">
+                        ${q.options.map((option, i) => `
+                            <div class="option ${i === q.correct ? 'correct' : 'incorrect'}">
+                                ${String.fromCharCode(65 + i)}. ${option}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            questionsList.innerHTML = html || '<p style="text-align: center; color: #666; padding: 2rem;">Belum ada pertanyaan. Tambah pertanyaan untuk memulai kuiz.</p>';
+            count.textContent = gameState.currentRoom.questions.length;
+        }
+
+        // Quiz functionality
+        function startQuiz() {
+            if (!gameState.currentRoom || gameState.currentRoom.questions.length === 0) {
+                alert('Tambahkan pertanyaan terlebih dahulu!');
+                return;
+            }
+
+            gameState.quizActive = true;
+            gameState.currentQuestion = 0;
+            
+            // Reset all scores
+            gameState.currentRoom.participants.forEach(p => p.score = 0);
+            
+            showQuizInterface();
+        }
+
+        function showQuizInterface() {
+            showScreen('quizScreen');
+            displayCurrentQuestion();
+        }
+
+        function displayCurrentQuestion() {
+            if (gameState.currentQuestion >= gameState.currentRoom.questions.length) {
+                showResults();
+                return;
+            }
+
+            const question = gameState.currentRoom.questions[gameState.currentQuestion];
+            
+            document.getElementById('quizQuestionNumber').textContent = 
+                `Pertanyaan ${gameState.currentQuestion + 1} dari ${gameState.currentRoom.questions.length}`;
+            document.getElementById('quizQuestionText').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('quizOptions');
+            const optionClasses = ['option-a', 'option-b', 'option-c', 'option-d'];
+            
+            optionsContainer.innerHTML = question.options.map((option, index) => `
+                <div class="quiz-option ${optionClasses[index]}" onclick="selectQuizAnswer(${index})">
+                    ${String.fromCharCode(65 + index)}. ${option}
+                </div>
+            `).join('');
+
+            startQuizTimer();
+        }
+
+        function selectQuizAnswer(selectedIndex) {
+            if (!gameState.quizActive) return;
+
+            // Disable all options
+            document.querySelectorAll('.quiz-option').forEach(option => {
+                option.style.pointerEvents = 'none';
+                option.classList.add('selected');
+            });
+
+            const question = gameState.currentRoom.questions[gameState.currentQuestion];
+            const participant = gameState.currentRoom.participants.find(p => p.name === currentUser.name);
+            
+            if (selectedIndex === question.correct && participant) {
+                participant.score += 10;
+                document.getElementById('quizStatus').textContent = 'Benar! +10 poin';
+                document.getElementById('quizStatus').className = 'status-indicator status-active';
+            } else {
+                document.getElementById('quizStatus').textContent = 'Salah!';
+                document.getElementById('quizStatus').className = 'status-indicator status-waiting';
+            }
+
+            clearInterval(gameState.timer);
+            
+            setTimeout(() => {
+                gameState.currentQuestion++;
+                displayCurrentQuestion();
+            }, 2000);
+        }
+
+        function startQuizTimer() {
+            gameState.timeLeft = 30;
+            document.getElementById('quizStatus').textContent = 'Pilih jawaban Anda!';
+            document.getElementById('quizStatus').className = 'status-indicator status-active';
+            
+            // Enable all options
+            document.querySelectorAll('.quiz-option').forEach(option => {
+                option.style.pointerEvents = 'auto';
+                option.classList.remove('selected');
+            });
+
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                document.getElementById('quizTimer').textContent = gameState.timeLeft;
+                
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timer);
+                    selectQuizAnswer(-1); // Auto-select wrong answer
+                }
+            }, 1000);
+        }
+
+        function showResults() {
+            showScreen('resultsScreen');
+            
+            const participants = [...gameState.currentRoom.participants]
+                .sort((a, b) => b.score - a.score);
+            
+            const leaderboardHtml = participants.map((participant, index) => `
+                <div class="leaderboard-item rank-${index + 1 <= 3 ? index + 1 : ''}">
+                    <div>
+                        <span class="rank">${index + 1}</span>
+                        <span>${participant.name}</span>
+                    </div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">
+                        ${participant.score} poin
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('leaderboard').innerHTML = leaderboardHtml;
+        }
+
+        // Auto-update for participants
+        function startParticipantUpdates() {
+            if (!currentUser.isHost) {
+                setInterval(() => {
+                    updateParticipantsList();
+                }, 2000);
+            }
+        }
+
+      
+
+        // Enhanced participant management
+        function kickParticipant(participantName) {
+            if (!currentUser.isHost || !gameState.currentRoom) return;
+            
+            gameState.currentRoom.participants = gameState.currentRoom.participants.filter(
+                p => p.name !== participantName
+            );
+            updateHostDashboard();
+        }
+
+        // Room validation
+        function validateRoomState() {
+            if (!gameState.currentRoom) {
+                showHome();
+                return false;
+            }
+            return true;
+        }
+
+        // Enhanced error handling
+        function handleError(message) {
+            alert(message);
+            console.error(message);
+        }
+
+        // Copy room ID functionality
+        function copyRoomId() {
+            const roomId = currentUser.roomId;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(roomId).then(() => {
+                    alert('Room ID berhasil disalin!');
+                });
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = roomId;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Room ID berhasil disalin!');
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                if (currentUser.roomId && confirm('Apakah Anda yakin ingin keluar dari room?')) {
+                    leaveRoom();
+                }
+            }
+            
+            // Quiz shortcuts (A, B, C, D)
+            if (gameState.quizActive && document.getElementById('quizScreen').classList.contains('active')) {
+                const key = event.key.toLowerCase();
+                if (['a', 'b', 'c', 'd'].includes(key)) {
+                    const index = key.charCodeAt(0) - 97; // Convert 'a' to 0, 'b' to 1, etc.
+                    selectQuizAnswer(index);
+                }
+            }
+        });
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Kuiz IMK Multiplayer siap digunakan!');
+            
+            // Add click to copy functionality for room IDs
+            document.addEventListener('click', function(event) {
+                if (event.target.classList.contains('room-id-display')) {
+                    copyRoomId();
+                }
+            });
+        });
+
+        // Enhanced room management with persistence simulation
+        function saveRoomState() {
+            // In a real application, this would save to a server
+            localStorage.setItem('imkQuizRooms', JSON.stringify(gameState.rooms));
+        }
+
+        function loadRoomState() {
+            // In a real application, this would load from a server
+            const saved = localStorage.getItem('imkQuizRooms');
+            if (saved) {
+                try {
+                    gameState.rooms = JSON.parse(saved);
+                } catch (e) {
+                    console.warn('Could not load saved room state');
+                }
+            }
+        }
+
+        // Call loadRoomState on page load
+        loadRoomState();
+
+        // Periodic cleanup of inactive rooms (in a real app, this would be server-side)
+        setInterval(() => {
+            const now = Date.now();
+            Object.keys(gameState.rooms).forEach(roomId => {
+                const room = gameState.rooms[roomId];
+                // Remove rooms older than 4 hours with no activity
+                if (!room.lastActivity) room.lastActivity = now;
+                if (now - room.lastActivity > 4 * 60 * 60 * 1000) {
+                    delete gameState.rooms[roomId];
+                }
+            });
+            saveRoomState();
+        }, 60000); // Check every minute
+    </script>
+</body>
+</html>
