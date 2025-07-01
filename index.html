@@ -367,8 +367,8 @@
     <div class="container">
         <!-- Home Screen -->
         <div class="screen active" id="homeScreen">
-            <h1>🖥️ Quiz Multiplayer</h1>
-            <p class="subtitle">Tugas Pak Herman - IMK</p>
+            <h1>🖥️ Quiz Room Multiplayer</h1>
+            <p class="subtitle">Platform kuis interaktif berbasis web</p>
             <div class="controls">
                 <button class="btn" onclick="showCreateRoom()">Buat Room</button>
                 <button class="btn btn-secondary" onclick="showJoinRoom()">Join Room</button>
@@ -592,6 +592,12 @@
                 questions: [],
                 active: false
             };
+             // Simpan roomId ke Firebase
+            firebase.database().ref('rooms/' + roomId).set({
+             host: hostName,
+             createdAt: new Date().toISOString()
+});
+
 
             gameState.currentRoom = gameState.rooms[roomId];
             
