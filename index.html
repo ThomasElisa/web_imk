@@ -592,15 +592,8 @@
                 questions: [],
                 active: false
             };
-             // Simpan roomId ke Firebase
-            firebase.database().ref('rooms/' + roomId).set({
-             host: hostName,
-             createdAt: new Date().toISOString()
-});
-
 
             gameState.currentRoom = gameState.rooms[roomId];
-            
             document.getElementById('hostRoomId').textContent = `Room ID: ${roomId}`;
             showHostRoom();
         }
